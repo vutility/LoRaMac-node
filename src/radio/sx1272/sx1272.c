@@ -1105,6 +1105,7 @@ uint8_t SX1272Read( uint16_t addr )
     return data;
 }
 
+#if 0
 void SX1272WriteBuffer( uint16_t addr, uint8_t *buffer, uint8_t size )
 {
     uint8_t i;
@@ -1139,6 +1140,7 @@ void SX1272ReadBuffer( uint16_t addr, uint8_t *buffer, uint8_t size )
     //NSS = 1;
     GpioWrite( &SX1272.Spi.Nss, 1 );
 }
+#endif
 
 void SX1272WriteFifo( uint8_t *buffer, uint8_t size )
 {

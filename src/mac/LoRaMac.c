@@ -32,6 +32,9 @@
 #include "LoRaMac.h"
 #include "LoRaMacCrypto.h"
 #include "LoRaMacTest.h"
+#include "undef_conflicts.h"
+#define NRF_LOG_MODULE_NAME "MAC"
+#include "nrf_log.h"
 
 /*!
  * Maximum PHY layer payload size
@@ -235,7 +238,7 @@ static uint8_t MacCommandsBufferToRepeat[LORA_MAC_COMMAND_MAX_LENGTH];
 /*!
  * LoRaMac parameters
  */
-LoRaMacParams_t LoRaMacParams;
+static LoRaMacParams_t LoRaMacParams;
 
 /*!
  * LoRaMac default parameters
@@ -2010,7 +2013,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
 
     if( status != LORAMAC_STATUS_OK )
     {
-        if( ( status == LORAMAC_STATUS_DUTYCYCLE_RESTRICTED ) && 
+        if( ( status == LORAMAC_STATUS_DUTYCYCLE_RESTRICTED ) &&
             ( allowDelayedTx == true ) )
         {
             // Allow delayed transmissions. We have to allow it in case
@@ -2058,6 +2061,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
     }
 
     // Try to send now
+    NRF_LOG_INFO("Using channel %d. Rx1 %d ms, Rx2 %d ms\n", Channel, RxWindow1Delay, RxWindow2Delay);
     return SendFrameOnChannel( Channel );
 }
 
@@ -2509,7 +2513,6 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     TimerInit( &RxWindowTimer1, OnRxWindow1TimerEvent );
     TimerInit( &RxWindowTimer2, OnRxWindow2TimerEvent );
     TimerInit( &AckTimeoutTimer, OnAckTimeoutTimerEvent );
-
     // Store the current initialization time
     LoRaMacInitializationTime = TimerGetCurrentTime( );
 
