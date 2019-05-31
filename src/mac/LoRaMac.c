@@ -2534,6 +2534,15 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     return LORAMAC_STATUS_OK;
 }
 
+LoRaMacStatus_t LoRaMacStopTimers() {
+    TimerStop(&MacStateCheckTimer);
+    TimerStop(&TxDelayedTimer);
+    TimerStop(&RxWindowTimer1);
+    TimerStop(&RxWindowTimer2);
+    TimerStop(&AckTimeoutTimer);
+    return LORAMAC_STATUS_OK;
+}
+
 LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo )
 {
     AdrNextParams_t adrNext;

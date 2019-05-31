@@ -304,7 +304,7 @@ typedef struct sLoRaMacParams
      */
     int8_t ChannelsDatarate;
     /*!
-     * System overall timing error in milliseconds. 
+     * System overall timing error in milliseconds.
      * [-SystemMaxRxError : +SystemMaxRxError]
      * Default: +/-10 ms
      */
@@ -1384,7 +1384,7 @@ typedef enum eMib
      */
     MIB_MULTICAST_CHANNEL,
     /*!
-     * System overall timing error in milliseconds. 
+     * System overall timing error in milliseconds.
      * [-SystemMaxRxError : +SystemMaxRxError]
      * Default: +/-10 ms
      */
@@ -1578,7 +1578,7 @@ typedef union uMibParam
      */
     MulticastParams_t* MulticastList;
     /*!
-     * System overall timing error in milliseconds. 
+     * System overall timing error in milliseconds.
      *
      * Related MIB type: \ref MIB_SYSTEM_MAX_RX_ERROR
      */
@@ -1823,6 +1823,8 @@ static const uint8_t LoRaMacMaxEirpTable[] = { 8, 10, 12, 13, 14, 16, 18, 20, 21
  *          \ref LORAMAC_STATUS_REGION_NOT_SUPPORTED.
  */
 LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, LoRaMacRegion_t region );
+
+LoRaMacStatus_t LoRaMacStopTimers();
 
 /*!
  * \brief   Queries the LoRaMAC if it is possible to send the next frame with
