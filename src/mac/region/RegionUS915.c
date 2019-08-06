@@ -33,6 +33,10 @@
 #include "RegionCommon.h"
 #include "RegionUS915.h"
 
+#include "undef_conflicts.h"
+#define NRF_LOG_MODULE_NAME "MAC"
+#include "nrf_log.h"
+
 // Definitions
 #define CHANNELS_MASK_SIZE              6
 
@@ -731,20 +735,22 @@ uint8_t RegionUS915DlChannelReq( DlChannelReqParams_t* dlChannelReq )
 
 int8_t RegionUS915AlternateDr( int8_t currentDr )
 {
-    static int8_t trialsCount = 0;
+    static int8_t call_count = 0;
 
+    // Not sure why we need this? Leaving it in
     // Re-enable 500 kHz default channels
     ChannelsMask[4] = 0x00FF;
 
-    if( ( trialsCount & 0x01 ) == 0x01 )
-    {
-        currentDr = DR_4;
-    }
-    else
-    {
+    call_count++;
+    if (call_count <= 8) {
         currentDr = DR_0;
     }
-    trialsCount++;
+    else {
+        call_count = 0;
+        currentDr = DR_4;
+    }
+
+    // NRF_LOG_INFO("DR_%d\n", currentDr);
     return currentDr;
 }
 
@@ -770,6 +776,9 @@ LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_
     uint8_t delayTx = 0;
     uint8_t enabledChannels[US915_MAX_NB_CHANNELS] = { 0 };
     TimerTime_t nextTxDelay = 0;
+    static unsigned join_channel_group_index = 7;
+    static unsigned last_channel_selected = 0;
+    static bool was_joining = false;
 
     // Count 125kHz channels
     if( RegionCommonCountChannels( ChannelsMaskRemaining, 0, 4 ) == 0 )
@@ -806,8 +815,40 @@ LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-        // We found a valid channel
-        *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+        if (!nextChanParams->Joined) {
+            // If we're joining, follow a different strategy for selecting a channel.
+            if(nextChanParams->Datarate == DR_4) {
+                *channel = 64 + randr( 0, 7 );
+            }
+            else { // DR_0
+                join_channel_group_index++;
+                if (join_channel_group_index >= 8) {
+                    join_channel_group_index = 0;
+                }
+
+                *channel = join_channel_group_index*8 + randr( 0, 7 );
+            }
+            last_channel_selected = *channel;
+            was_joining = true;
+            // NRF_LOG_INFO("Join selection:%d\n", *channel)
+        } else {
+            // We have already joined
+
+            if (was_joining) {
+                was_joining = false;
+                // A bit of a hack to speed up ADR process. If we are here we may
+                // have just joined on DR_0. Let's use the join_channel_group_index
+                // as a hint which channel to use next. This only works when all
+                // channels are enabled.
+                *channel = last_channel_selected;
+                // NRF_LOG_INFO("hack selection:%d\n", *channel)
+            }
+            else {
+                // Otherwise use the normal channel selection mechanism.
+                *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+            }
+        }
+
         // Disable the channel in the mask
         RegionCommonChanDisable( ChannelsMaskRemaining, *channel, US915_MAX_NB_CHANNELS - 8 );
 
