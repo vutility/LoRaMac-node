@@ -3307,8 +3307,8 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
     LoRaMacHeader_t macHdr;
     VerifyParams_t verify;
     uint8_t fPort = 0;
-    void *fBuffer;
-    uint16_t fBufferSize;
+    void *fBuffer = NULL;
+    uint16_t fBufferSize = 0;
     int8_t datarate = DR_0;
     bool readyToSend = false;
 
