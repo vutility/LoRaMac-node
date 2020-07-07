@@ -2061,7 +2061,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
     }
 
     // Try to send now
-    NRF_LOG_INFO("Using channel %d, DR %d, Rx1 %d ms, Rx2 %d ms\n", Channel, LoRaMacParams.ChannelsDatarate, RxWindow1Delay, RxWindow2Delay);
+    NRF_LOG_DEBUG("Using channel %d, DR %d, Rx1 %d ms, Rx2 %d ms\n", Channel, LoRaMacParams.ChannelsDatarate, RxWindow1Delay, RxWindow2Delay);
     return SendFrameOnChannel( Channel );
 }
 
