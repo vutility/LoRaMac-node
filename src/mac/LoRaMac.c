@@ -1980,7 +1980,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
 
     // Schedule frame, do not allow delayed transmissions
     status = ScheduleTx( false );
-
+    NRF_LOG_INFO("Send(), ScheduleTx returned %d\n", status);
     return status;
 }
 
