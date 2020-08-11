@@ -1969,6 +1969,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
     // Validate status
     if( status != LORAMAC_STATUS_OK )
     {
+        NRF_LOG_INFO("Send(), PrepareFrame not OK\n");
         return status;
     }
 
@@ -1992,6 +1993,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
     // Check if the device is off
     if( MaxDCycle == 255 )
     {
+        NRF_LOG_INFO("ScheduleTx(), LORAMAC_STATUS_DEVICE_OFF\n");
         return LORAMAC_STATUS_DEVICE_OFF;
     }
     if( MaxDCycle == 0 )
@@ -2010,6 +2012,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
 
     // Select channel
     status = RegionNextChannel( LoRaMacRegion, &nextChan, &Channel, &dutyCycleTimeOff, &AggregatedTimeOff );
+    NRF_LOG_INFO("RegionNextChannel() status %d, dutyCycleTimeOff %d\n", status, dutyCycleTimeOff);
 
     if( status != LORAMAC_STATUS_OK )
     {
@@ -2020,6 +2023,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
             // the MAC must retransmit a frame with the frame repetitions
             if( dutyCycleTimeOff != 0 )
             {// Send later - prepare timer
+                NRF_LOG_INFO("ScheduleTx(), Delayed TX!\n");
                 LoRaMacState |= LORAMAC_TX_DELAYED;
                 TimerSetValue( &TxDelayedTimer, dutyCycleTimeOff );
                 TimerStart( &TxDelayedTimer );
@@ -2061,7 +2065,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
     }
 
     // Try to send now
-    NRF_LOG_DEBUG("Using channel %d, DR %d, Rx1 %d ms, Rx2 %d ms\n", Channel, LoRaMacParams.ChannelsDatarate, RxWindow1Delay, RxWindow2Delay);
+    NRF_LOG_INFO("Using channel %d, DR %d, Rx1 %d ms, Rx2 %d ms\n", Channel, LoRaMacParams.ChannelsDatarate, RxWindow1Delay, RxWindow2Delay);
     return SendFrameOnChannel( Channel );
 }
 
