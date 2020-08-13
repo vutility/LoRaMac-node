@@ -732,6 +732,7 @@ static void PrepareRxDoneAbort( void )
     }
 
     LoRaMacFlags.Bits.McpsInd = 1;
+    NRF_LOG_INFO("B: LoRaMacFlags.Bits.McpsInd %d\n", LoRaMacFlags.Bits.McpsInd);
     LoRaMacFlags.Bits.MacDone = 1;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
@@ -1099,6 +1100,7 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
 
                     // Provide always an indication, skip the callback to the user application,
                     // in case of a confirmed downlink retransmission.
+                    NRF_LOG_INFO("C: LoRaMacFlags.Bits.McpsInd %d\n", LoRaMacFlags.Bits.McpsInd);
                     LoRaMacFlags.Bits.McpsInd = 1;
                 }
                 else
@@ -1119,6 +1121,7 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
                 McpsIndication.Buffer = LoRaMacRxPayload;
                 McpsIndication.BufferSize = size - pktHeaderLen;
 
+                NRF_LOG_INFO("D: LoRaMacFlags.Bits.McpsInd %d\n", LoRaMacFlags.Bits.McpsInd);
                 LoRaMacFlags.Bits.McpsInd = 1;
                 break;
             }
@@ -1252,6 +1255,8 @@ static void OnMacStateCheckTimerEvent( void )
     PhyParam_t phyParam;
     bool txTimeout = false;
 
+
+
     TimerStop( &MacStateCheckTimer );
 
     if( LoRaMacFlags.Bits.MacDone == 1 )
@@ -1292,6 +1297,7 @@ static void OnMacStateCheckTimerEvent( void )
                 }
                 else
                 {// Procedure for all other frames
+                    NRF_LOG_INFO("MacStateCheck: %d >= %d || %d == 1\n", ChannelsNbRepCounter, LoRaMacParams.ChannelsNbRep, LoRaMacFlags.Bits.McpsInd);
                     if( ( ChannelsNbRepCounter >= LoRaMacParams.ChannelsNbRep ) || ( LoRaMacFlags.Bits.McpsInd == 1 ) )
                     {
                         if( LoRaMacFlags.Bits.McpsInd == 0 )
@@ -1314,6 +1320,7 @@ static void OnMacStateCheckTimerEvent( void )
                     {
                         LoRaMacFlags.Bits.MacDone = 0;
                         // Sends the same frame again
+                        NRF_LOG_INFO("Transmit same frame again.\n");
                         OnTxDelayedTimerEvent( );
                     }
                 }
@@ -1352,6 +1359,7 @@ static void OnMacStateCheckTimerEvent( void )
                     LoRaMacParams.ChannelsDatarate = phyParam.Value;
                 }
                 // Try to send the frame again. Allow delayed frame transmissions
+                NRF_LOG_INFO("OnMacStateCheckTimerEvent(), ScheduleTx()\n");
                 if( ScheduleTx( true ) == LORAMAC_STATUS_OK )
                 {
                     LoRaMacFlags.Bits.MacDone = 0;
@@ -1429,6 +1437,7 @@ static void OnMacStateCheckTimerEvent( void )
     if( LoRaMacFlags.Bits.McpsInd == 1 )
     {
         LoRaMacFlags.Bits.McpsInd = 0;
+        NRF_LOG_INFO("A: LoRaMacFlags.Bits.McpsInd %d\n", LoRaMacFlags.Bits.McpsInd);
         if( LoRaMacDeviceClass == CLASS_C )
         {// Activate RX2 window for Class C
             OpenContinuousRx2Window( );
@@ -1454,6 +1463,7 @@ static void OnTxDelayedTimerEvent( void )
     LoRaMacState &= ~LORAMAC_TX_DELAYED;
 
     // Schedule frame, allow delayed frame transmissions
+    NRF_LOG_INFO("OnTxDelayedTimerEvent(), ScheduleTx()\n");
     ScheduleTx( true );
 }
 
@@ -1812,6 +1822,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                         LoRaMacParams.ChannelsDatarate = linkAdrDatarate;
                         LoRaMacParams.ChannelsTxPower = linkAdrTxPower;
                         LoRaMacParams.ChannelsNbRep = linkAdrNbRep;
+                        NRF_LOG_INFO("A: LoRaMacParams.ChannelsNbRep %d\n", LoRaMacParams.ChannelsNbRep);
                     }
 
                     // Add the answers to the buffer
@@ -2012,7 +2023,7 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
 
     // Select channel
     status = RegionNextChannel( LoRaMacRegion, &nextChan, &Channel, &dutyCycleTimeOff, &AggregatedTimeOff );
-    NRF_LOG_INFO("RegionNextChannel() status %d, dutyCycleTimeOff %d\n", status, dutyCycleTimeOff);
+    // NRF_LOG_INFO("RegionNextChannel() status %d, dutyCycleTimeOff %d\n", status, dutyCycleTimeOff);
 
     if( status != LORAMAC_STATUS_OK )
     {
@@ -2505,6 +2516,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     LoRaMacParams.ReceiveDelay2 = LoRaMacParamsDefaults.ReceiveDelay2;
     LoRaMacParams.JoinAcceptDelay1 = LoRaMacParamsDefaults.JoinAcceptDelay1;
     LoRaMacParams.JoinAcceptDelay2 = LoRaMacParamsDefaults.JoinAcceptDelay2;
+    NRF_LOG_INFO("B: LoRaMacParams.ChannelsNbRep %d\n", LoRaMacParams.ChannelsNbRep);
     LoRaMacParams.ChannelsNbRep = LoRaMacParamsDefaults.ChannelsNbRep;
 
     ResetMacParameters( );
@@ -2975,6 +2987,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
                 ( mibSet->Param.ChannelNbRep <= 15 ) )
             {
                 LoRaMacParams.ChannelsNbRep = mibSet->Param.ChannelNbRep;
+                NRF_LOG_INFO("C: LoRaMacParams.ChannelsNbRep %d\n", LoRaMacParams.ChannelsNbRep);
             }
             else
             {
